@@ -511,7 +511,7 @@ The ten most common issues from two full deployment runs (32 lessons documented)
 | Resource | Location |
 |---|---|
 | Helm chart (OCI) | `oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default` |
-| Helm values reference | [CNE Helm Values Reference](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-reference/cne-helm-values-reference) |
+| Helm values reference | [CNE Helm Values Reference](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience) |
 | Configuring externally managed services | [CNE External Services](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/2025-q4-and-earlier/configuring-externally-managed-services) |
 | Managing secrets and licenses | [CNE Secrets and Licenses](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/configuring-the-cne/managing-secrets-and-licenses) |
 | GitOps repo example | [github.com/misaellr/liferay-openshift-gitops](https://github.com/misaellr/liferay-openshift-gitops) |

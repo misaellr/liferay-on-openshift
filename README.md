@@ -119,7 +119,7 @@ Deployed on self-managed OpenShift 4.17 (compact 3-node, us-east-1):
 ## References
 
 ### Liferay Cloud Native Experience
-- [Kubernetes Ready Overview](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-kubernetes-ready)
+- [Cloud Native Experience Documentation](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience)
 - [Kubernetes Ready Quick Start (2025.Q4 and earlier)](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-kubernetes-ready/kubernetes-cluster-2025-q4-earlier)
 - [Helm Values Reference](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-reference/cne-helm-values-reference)
 - [Configuring Externally Managed Services](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/2025-q4-and-earlier/configuring-externally-managed-services)

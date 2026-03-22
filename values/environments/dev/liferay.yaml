@@ -1,0 +1,158 @@
+# OpenShift Dev Environment
+# Flat top-level keys (chart deployed directly from OCI, not as subchart)
+
+image:
+  tag: "2025.q1.12-lts"
+
+# --- SCC: nonroot-v2 ---
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  fsGroup: 1000
+  fsGroupChangePolicy: Always
+
+securityContext:
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+# --- SCC RBAC ---
+global:
+  liferayServiceAccount:
+    role:
+      rules:
+        - apiGroups: [""]
+          resources: ["configmaps"]
+          verbs: ["*"]
+        - apiGroups: ["security.openshift.io"]
+          resourceNames: ["nonroot-v2"]
+          resources: ["securitycontextconstraints"]
+          verbs: ["use"]
+
+# --- Storage ---
+volumeClaimTemplates:
+  - metadata:
+      name: liferay-persistent-volume
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "gp3-csi"       # Change for your cluster (managed-csi for Azure)
+      resources:
+        requests:
+          storage: 20Gi
+
+overlay:
+  enabled: false
+
+# --- Credentials ---
+# Option A: Individual secretKeyRef (for non-slim images)
+customEnv:
+  x-database:
+    - name: DATABASE_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: pgdb-pguser-liferay     # Crunchy PGO Secret name: <cluster>-pguser-<user>
+          key: host
+    - name: DATABASE_PORT
+      valueFrom:
+        secretKeyRef:
+          name: pgdb-pguser-liferay
+          key: port
+    - name: DATABASE_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: pgdb-pguser-liferay
+          key: user
+    - name: DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: pgdb-pguser-liferay
+          key: password
+  x-search:
+    - name: OPENSEARCH_ENDPOINT
+      value: "opensearch.NAMESPACE.svc"  # Replace NAMESPACE with your namespace
+    - name: OPENSEARCH_USERNAME
+      value: "admin"
+    - name: OPENSEARCH_PASSWORD
+      value: "admin"
+
+# Option B: Unified secret (for slim images, uncomment and remove Option A)
+# customEnvFrom:
+#   x-managed-services:
+#     - secretRef:
+#         name: managed-service-details
+
+# --- Database ---
+portalProperties: |
+  jdbc.default.driverClassName=org.postgresql.Driver
+  jdbc.default.url=jdbc:postgresql://${env.DATABASE_ENDPOINT}:${env.DATABASE_PORT}/lportal?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false
+  jdbc.default.username=${env.DATABASE_USERNAME}
+  jdbc.default.password=${env.DATABASE_PASSWORD}
+  proxy.forwarded.for.header=X-Forwarded-For
+  proxy.forwarded.host.header=X-Forwarded-Host
+  proxy.forwarded.proto.header=X-Forwarded-Proto
+  web.server.forwarded.port.enabled=true
+  web.server.forwarded.protocol.enabled=true
+  web.server.protocol=https
+  web.server.https.port=443
+  company.default.web.id=REPLACE_WITH_ROUTE_HOSTNAME
+  virtual.hosts.default.site.name=Guest
+
+# --- OpenSearch ---
+configmap:
+  data:
+    com.liferay.portal.search.opensearch2.configuration.OpenSearchConfiguration.config: |
+      remoteClusterConnectionId="REMOTE"
+    com.liferay.portal.search.opensearch2.configuration.OpenSearchConnectionConfiguration-REMOTE.config: |
+      active=B"true"
+      authenticationEnabled=B"false"
+      connectionId="REMOTE"
+      httpSSLEnabled=B"false"
+      networkHostAddresses=["http://opensearch.NAMESPACE.svc:9200"]
+      password=""
+      username=""
+
+customVolumeMounts:
+  x-opensearch:
+    - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.search.opensearch2.configuration.OpenSearchConfiguration.config
+      name: liferay-configmap
+      subPath: com.liferay.portal.search.opensearch2.configuration.OpenSearchConfiguration.config
+    - mountPath: /opt/liferay/osgi/configs/com.liferay.portal.search.opensearch2.configuration.OpenSearchConnectionConfiguration-REMOTE.config
+      name: liferay-configmap
+      subPath: com.liferay.portal.search.opensearch2.configuration.OpenSearchConnectionConfiguration-REMOTE.config
+
+# --- Bundle deny list (OpenSearch replaces Elasticsearch) ---
+portalBundleDenyList:
+  - com.liferay.portal.search.elasticsearch.cross.cluster.replication.impl
+  - com.liferay.portal.search.elasticsearch.monitoring.web
+  - com.liferay.portal.search.elasticsearch8.api
+  - com.liferay.portal.search.elasticsearch8.impl
+  - com.liferay.portal.search.learning.to.rank.api
+  - com.liferay.portal.search.learning.to.rank.impl
+
+# --- Resources (dev) ---
+resources:
+  limits:
+    cpu: "2"
+    memory: 6Gi
+  requests:
+    cpu: 100m
+    memory: 1Gi
+
+# --- Probes ---
+startupProbe:
+  failureThreshold: 180
+  initialDelaySeconds: 120
+  periodSeconds: 10
+livenessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 30
+readinessProbe:
+  initialDelaySeconds: 0
+  periodSeconds: 10
+
+replicaCount: 1

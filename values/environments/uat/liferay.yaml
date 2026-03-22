@@ -1,0 +1,13 @@
+# OpenShift UAT Environment
+# Inherits all config from base + dev. Override resources and replicas here.
+
+image:
+  tag: "2025.q1.12-lts"
+replicaCount: 1
+resources:
+  limits:
+    cpu: "2"
+    memory: 8Gi
+  requests:
+    cpu: 500m
+    memory: 2Gi

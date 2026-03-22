@@ -1,0 +1,68 @@
+# OpenSearch direct StatefulSet (not operator - L-020)
+# Security disabled for PoC. Single-node discovery mode.
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: opensearch
+spec:
+  serviceName: opensearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: opensearch
+          image: opensearchproject/opensearch:2.19.2
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: DISABLE_SECURITY_PLUGIN
+              value: "true"
+            - name: DISABLE_INSTALL_DEMO_CONFIG
+              value: "true"
+            - name: OPENSEARCH_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          ports:
+            - containerPort: 9200
+              name: http
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 100m
+            limits:
+              memory: 2Gi
+              cpu: "1"
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/opensearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: gp3-csi
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opensearch
+spec:
+  selector:
+    app: opensearch
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+  type: ClusterIP

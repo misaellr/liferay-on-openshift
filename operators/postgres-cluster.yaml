@@ -1,0 +1,38 @@
+# Crunchy PGO PostgresCluster - deployed in liferay-dev namespace
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: liferay-db
+spec:
+  postgresVersion: 16
+  instances:
+    - name: pgha1
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+      dataVolumeClaimSpec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: gp3-csi
+        resources:
+          requests:
+            storage: 10Gi
+  users:
+    - name: liferay
+      databases: ["lportal"]
+      options: "SUPERUSER"
+  backups:
+    pgbackrest:
+      repos:
+        - name: repo1
+          volume:
+            volumeClaimSpec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: gp3-csi
+              resources:
+                requests:
+                  storage: 5Gi

@@ -1,0 +1,13 @@
+# OpenShift Production Environment
+# Inherits all config from base + dev. Override resources and replicas here.
+
+image:
+  tag: "2025.q1.12-lts"
+replicaCount: 2
+resources:
+  limits:
+    cpu: "4"
+    memory: 12Gi
+  requests:
+    cpu: "2"
+    memory: 4Gi

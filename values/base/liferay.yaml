@@ -1,0 +1,53 @@
+liferay-default:
+  replicaCount: 1
+  image:
+    tag: "2025.q4.12"
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::294825482201:role/misael-cne-irsa
+  startupProbe:
+    failureThreshold: 180
+    httpGet:
+      path: /c/portal/robots
+      port: http
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+  securityContext:
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: []
+    runAsNonRoot: false
+    runAsUser: 0
+  podSecurityContext:
+    fsGroup: 0
+    runAsUser: 0
+    runAsNonRoot: false
+  customInitContainers:
+    x-liferay-install-opensearch-modules:
+      - command:
+          - bash
+          - -c
+          - |
+            function download_module {
+                local product_version="2025.q4.11"
+                local url="https://releases.liferay.com/opensearch2/dxp/${product_version}/com.liferay.portal.search.opensearch2.${1}.jar"
+                local http_code=$(curl --location --output-dir /temp/liferay/deploy --remote-name --retry 5 --retry-all-errors --retry-delay 2 --write-out "%{http_code}" "${url}")
+                if [ "${http_code}" != "200" ]; then
+                    echo "Unable to download OpenSearch modules for product version ${product_version}." >&2
+                    exit 1
+                fi
+            }
+            function main {
+                mkdir --parents /temp/liferay/deploy
+                rm --force --verbose "/temp/osgi/modules/com.liferay.portal.search.opensearch2"*
+                download_module "api"
+                download_module "impl"
+            }
+            main
+        image: liferay/dxp:2025.q4.12
+        imagePullPolicy: IfNotPresent
+        name: liferay-install-opensearch-modules
+        volumeMounts:
+          - mountPath: /temp
+            name: liferay-persistent-volume

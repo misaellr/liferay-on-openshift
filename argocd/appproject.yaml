@@ -1,0 +1,56 @@
+# =============================================================================
+# AppProject: liferay-application
+# =============================================================================
+# Source: Terraform resource "kubernetes_manifest" "liferay_appproject" in
+#   cloud/terraform/aws/gitops/resources/argocd.tf (lines 438-480)
+#
+# Adaptations for OpenShift:
+#   1. namespace: openshift-gitops (OpenShift GitOps Operator default)
+#      Original: var.argocd_namespace (default "argocd-system")
+#   2. Removed infrastructure-provider chart URLs from sourceRepos
+#      (no Crossplane/AWS infrastructure provider on OpenShift)
+#   3. sourceRepos uses the liferay-default OCI chart URL from GCP Artifact Registry
+#      Original: local.liferay_helm_chart_config.chart_url (resolved to same URL
+#      when liferay_helm_chart_name = "liferay-default")
+#   4. sourceRepos includes the OpenShift GitOps repo (replaces var.liferay_git_repo_url)
+#   5. destinations scoped to liferay-* namespaces only
+#      Original also included elastic-system, crossplane-system, envoy-gateway-system
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: liferay-application
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/component: gitops-infrastructure
+    app.kubernetes.io/managed-by: openshift-gitops-yaml
+    app.kubernetes.io/part-of: liferay-gitops
+    app.kubernetes.io/name: liferay-appproject
+spec:
+  description: "ArgoCD Project for Liferay Cloud Native applications on OpenShift."
+
+  # Destinations: which clusters/namespaces this project can deploy to.
+  # Original had liferay-* plus elastic-system, crossplane-system, envoy-gateway-system.
+  # OpenShift path only needs liferay-* namespaces.
+  destinations:
+    - namespace: "liferay-dev"
+      server: "https://kubernetes.default.svc"
+    - namespace: "liferay-uat"
+      server: "https://kubernetes.default.svc"
+    - namespace: "liferay-prd"
+      server: "https://kubernetes.default.svc"
+
+  # Sources: which repos/registries applications in this project can pull from.
+  # Original: local.liferay_helm_chart_config.chart_url and var.liferay_git_repo_url
+  sourceRepos:
+    # OCI Helm chart (liferay-default from GCP Artifact Registry)
+    - "oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default"
+    - "oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default/*"
+    # GitOps values repository
+    - "https://github.com/YOUR-ORG/YOUR-GITOPS-REPO.git"
+
+  # Allow cluster-scoped resources (same as original).
+  # Needed for ClusterRole, ClusterRoleBinding, etc. that the Helm chart may create.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

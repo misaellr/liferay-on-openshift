@@ -1,0 +1,146 @@
+# =============================================================================
+# ApplicationSet: liferay-applicationset
+# =============================================================================
+# Source: Terraform resource "kubernetes_manifest" "liferay_applicationset" in
+#   cloud/terraform/aws/gitops/resources/argocd.tf (lines 303-437)
+#
+# Adaptations for OpenShift:
+#   1. namespace: openshift-gitops
+#      Original: var.argocd_namespace (default "argocd-system")
+#   2. Git generator repoURL: the OpenShift-specific GitOps repo
+#      Original: var.liferay_git_repo_url
+#   3. Git generator file path: liferay/projects/*/environments/*/liferay.yaml
+#      Original: "${var.liferay_git_repo_config.source_paths.environments}/
+#                 ${var.liferay_git_repo_config.source_paths.values_filename}"
+#      which resolves to the same pattern with defaults.
+#   4. Helm chart source uses liferay-default from GCP Artifact Registry
+#      Original: local.liferay_helm_chart_config.chart_url
+#      (same URL when liferay_helm_chart_name = "liferay-default")
+#   5. REMOVED AWS-specific Helm parameters:
+#      - network.gatewayName (AWS Gateway API / Envoy Gateway)
+#      - serviceAccount.annotations.eks.amazonaws.com/role-arn (AWS IRSA)
+#      - serviceAccount.create and serviceAccount.name (IRSA-related)
+#      - global.aws.accountId
+#      - global.deploymentName
+#      - global.environmentId
+#      - global.projectId
+#   6. Target namespace: liferay-{{path[2]}}-{{path[4]}}
+#      For the single environment case (project=default, env=dev),
+#      this resolves to: liferay-default-dev
+#      You can override this to a fixed namespace like liferay-openshift-dev
+#      by replacing the template expression.
+#   7. ignoreDifferences on Secret "liferay-default" kept (chart-managed secret).
+#   8. syncPolicy kept as-is (automated prune + selfHeal).
+#   9. AppProject reference updated to match appproject.yaml above.
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: liferay-applicationset
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/component: gitops-infrastructure
+    app.kubernetes.io/managed-by: openshift-gitops-yaml
+    app.kubernetes.io/part-of: liferay-gitops
+    app.kubernetes.io/name: liferay-applicationset
+spec:
+  generators:
+    # Git file generator: scans the GitOps repo for environment configs.
+    # Each liferay.yaml file found becomes one ArgoCD Application.
+    # Path structure: liferay/projects/<project>/environments/<env>/liferay.yaml
+    #   path[0] = liferay
+    #   path[1] = projects
+    #   path[2] = <project>   (e.g., "default")
+    #   path[3] = environments
+    #   path[4] = <env>       (e.g., "dev", "openshift-dev")
+    - git:
+        repoURL: "https://github.com/YOUR-ORG/YOUR-GITOPS-REPO.git"
+        revision: HEAD
+        files:
+          - path: "liferay/projects/*/environments/*/liferay.yaml"
+
+  template:
+    metadata:
+      # Application name: <project>-<env>-app (e.g., "default-dev-app")
+      # Original: var.liferay_git_repo_config.target.name = "{{path[2]}}-{{path[4]}}-app"
+      name: "{{path[2]}}-{{path[4]}}-app"
+      annotations:
+        argocd.argoproj.io/compare-options: IgnoreExtraneous
+      labels:
+        app.kubernetes.io/component: gitops-infrastructure
+        app.kubernetes.io/managed-by: openshift-gitops-yaml
+        app.kubernetes.io/part-of: liferay-gitops
+        app.kubernetes.io/name: "{{path[2]}}-{{path[4]}}-app"
+
+    spec:
+      # Reference to the AppProject defined in appproject.yaml
+      project: liferay-application
+
+      destination:
+        # Target namespace: liferay-<env> (e.g., liferay-dev, liferay-uat, liferay-prd)
+        # Path structure: liferay/projects/<project>/environments/<env>/liferay.yaml
+        # We use path[4] (env name) directly, dropping the project segment.
+        namespace: "liferay-{{path[4]}}"
+        server: "https://kubernetes.default.svc"
+
+      # Multi-source: Helm chart + values from Git repo
+      # Original used the same pattern with $values ref.
+      sources:
+        # Source 1: The Liferay Helm chart from OCI registry
+        - chart: liferay-default
+          repoURL: "oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default"
+          # Pin to the chart version you are testing.
+          # Original: local.liferay_helm_chart_config.version = var.liferay_helm_chart_version
+          # Always use latest chart version (no pin)
+          targetRevision: "*"
+          helm:
+            # Values files from the Git repo (referenced via $values).
+            # Original pattern preserved exactly:
+            #   1. Base values: liferay/projects/<project>/base/liferay.yaml
+            #   2. Environment values: liferay/projects/<project>/environments/<env>/liferay.yaml
+            valueFiles:
+              - "$values/liferay/projects/{{path[2]}}/base/liferay.yaml"
+              - "$values/{{path}}/liferay.yaml"
+            # ------------------------------------------------------------------
+            # REMOVED parameters (all AWS-specific):
+            #
+            #   name: network.gatewayName
+            #   value: <project>-<env>-gateway
+            #   Reason: AWS Envoy Gateway. OpenShift uses Routes natively.
+            #
+            #   name: serviceAccount.annotations.eks.amazonaws.com/role-arn
+            #   value: arn:aws:iam::<account>:role/<deployment>-irsa
+            #   Reason: AWS IRSA for pod identity. Not applicable on OpenShift.
+            #
+            #   name: serviceAccount.create / serviceAccount.name
+            #   Reason: Tied to AWS IRSA flow.
+            #
+            #   name: global.aws.accountId / global.deploymentName
+            #   name: global.environmentId / global.projectId
+            #   Reason: Used by AWS infrastructure provider. Not needed without
+            #           Crossplane/Terraform-managed infrastructure.
+            # ------------------------------------------------------------------
+
+        # Source 2: Git repo providing the values files (the $values ref)
+        - repoURL: "https://github.com/YOUR-ORG/YOUR-GITOPS-REPO.git"
+          targetRevision: HEAD
+          ref: values
+
+      # Ignore differences on the chart-managed secret.
+      # Original: same resource (Secret "liferay-default", jsonPointers /data).
+      ignoreDifferences:
+        - group: ""
+          kind: Secret
+          name: liferay-default
+          jsonPointers:
+            - /data
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - RespectIgnoreDifferences=true

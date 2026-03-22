@@ -97,9 +97,53 @@ Edit `values/environments/dev/liferay.yaml`:
 - [Troubleshooting](docs/troubleshooting.md)
 - [Architecture](docs/architecture.md)
 
+## Live Environment (AWS)
+
+Deployed on self-managed OpenShift 4.17 (compact 3-node, us-east-1):
+
+| Resource | URL |
+|---|---|
+| **OpenShift Console** | `https://console-openshift-console.apps.openshift.misaelneto.com` |
+| **ArgoCD Console** | `https://openshift-gitops-server-openshift-gitops.apps.openshift.misaelneto.com` |
+| **Liferay DXP (dev)** | `https://liferay-default-liferay-dev.apps.openshift.misaelneto.com` |
+
+> Note: This environment is ephemeral. It may not be running when you access these URLs.
+
+## Related Repositories
+
+| Repository | Purpose |
+|---|---|
+| [misaellr/liferay-on-openshift](https://github.com/misaellr/liferay-on-openshift) | This repo: reference configs, scripts, docs |
+| [misaellr/liferay-openshift-gitops](https://github.com/misaellr/liferay-openshift-gitops) | GitOps values repo (what ArgoCD watches) |
+
 ## References
 
-- [Liferay Kubernetes Ready](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-kubernetes-ready)
-- [Liferay Helm Chart (OCI)](https://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default)
-- [Crunchy PGO](https://access.crunchydata.com/documentation/postgres-operator/latest/)
+### Liferay Cloud Native Experience
+- [Kubernetes Ready Overview](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-kubernetes-ready)
+- [Kubernetes Ready Quick Start (2025.Q4 and earlier)](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-kubernetes-ready/kubernetes-cluster-2025-q4-earlier)
+- [Helm Values Reference](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-reference/cne-helm-values-reference)
+- [Configuring Externally Managed Services](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/2025-q4-and-earlier/configuring-externally-managed-services)
+- [Managing Secrets and Licenses](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/configuring-the-cne/managing-secrets-and-licenses)
+- [Adding OSGi Modules with Overlays](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/configuring-the-cne/adding-osgi-modules-or-cx-with-overlays)
+
+### Liferay Helm Chart
+- [OCI Artifact Registry](https://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default)
+- [Liferay DXP Docker Images](https://hub.docker.com/r/liferay/dxp/tags)
+- [OpenSearch Connector Modules](https://releases.liferay.com/opensearch2/dxp/)
+
+### OpenShift
+- [OpenShift 4.17 Documentation](https://docs.openshift.com/container-platform/4.17/welcome/index.html)
+- [OpenShift IPI on AWS](https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/installing_on_aws/installer-provisioned-infrastructure)
+- [Managing SCCs](https://docs.openshift.com/container-platform/4.17/authentication/managing-security-context-constraints.html)
 - [OpenShift GitOps Operator](https://docs.openshift.com/gitops/latest/understanding_openshift_gitops/about-redhat-openshift-gitops.html)
+- [A Guide to OpenShift and UIDs](https://www.redhat.com/en/blog/a-guide-to-openshift-and-uids)
+
+### Operators
+- [Crunchy Data PGO](https://access.crunchydata.com/documentation/postgres-operator/latest/)
+- [Crunchy PGO User Management](https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/user-management)
+- [OpenSearch Kubernetes Operator](https://github.com/opensearch-project/opensearch-k8s-operator)
+- [OpenSearch Docker Images](https://hub.docker.com/r/opensearchproject/opensearch/tags)
+
+### ArgoCD
+- [ArgoCD ApplicationSet Documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/)
+- [ArgoCD Multi-Source Applications](https://argo-cd.readthedocs.io/en/stable/user-guide/multiple_sources/)

@@ -503,7 +503,6 @@ The ten most common issues from two full deployment runs (32 lessons documented)
 | `2025.q1.12-lts` | Validated | Works with external OpenSearch via downloaded connector modules. Recommended for initial deployment. |
 | `2025.q4.12-slim` | Requires investigation | Slim startup script needs specific environment variable configuration. Use `managed-service-details` Secret pattern (same as AWS). |
 | `2025.q4.12` | Partial | Sidecar Elasticsearch blocks startup when no search engine is available. Use the slim variant instead. |
-| `2026.q1.0-lts` | Do not use | Known issues with license validation and build stability (reported March 2026). |
 
 ---
 

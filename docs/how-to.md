@@ -511,8 +511,15 @@ The ten most common issues from two full deployment runs (32 lessons documented)
 | Resource | Location |
 |---|---|
 | Helm chart (OCI) | `oci://us-central1-docker.pkg.dev/liferay-artifact-registry/liferay-helm-chart/liferay-default` |
-| Helm values reference | [CNE Helm Values Reference](https://learn.liferay.com) |
+| Helm values reference | [CNE Helm Values Reference](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-reference/cne-helm-values-reference) |
+| Configuring externally managed services | [CNE External Services](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/2025-q4-and-earlier/configuring-externally-managed-services) |
+| Managing secrets and licenses | [CNE Secrets and Licenses](https://learn.liferay.com/w/dxp/self-hosted-installation-and-upgrades/cloud-native-experience/cne-cloud-provider-ready/cne-aws-ready/configuring-the-cne/managing-secrets-and-licenses) |
 | GitOps repo example | [github.com/misaellr/liferay-openshift-gitops](https://github.com/misaellr/liferay-openshift-gitops) |
 | OpenSearch connector modules | `https://releases.liferay.com/opensearch2/dxp/<version>/` |
-| Crunchy PGO | `oci://registry.developers.crunchydata.com/crunchydata/pgo` |
-| 32 lessons learned | `spec/project/lessons.md` in the experiment repository |
+| OpenSearch Kubernetes Operator | [github.com/opensearch-project/opensearch-k8s-operator](https://github.com/opensearch-project/opensearch-k8s-operator) |
+| OpenSearch Docker images | [hub.docker.com/r/opensearchproject/opensearch](https://hub.docker.com/r/opensearchproject/opensearch/tags) |
+| Crunchy PGO documentation | [access.crunchydata.com/documentation](https://access.crunchydata.com/documentation/postgres-operator/latest/) |
+| Crunchy PGO user management | [PGO User Management](https://access.crunchydata.com/documentation/postgres-operator/latest/architecture/user-management) |
+| OpenShift SCC guide | [A Guide to OpenShift and UIDs](https://www.redhat.com/en/blog/a-guide-to-openshift-and-uids) |
+| OpenShift GitOps Operator | [OpenShift GitOps docs](https://docs.openshift.com/gitops/latest/understanding_openshift_gitops/about-redhat-openshift-gitops.html) |
+| ArgoCD ApplicationSet | [ArgoCD ApplicationSet docs](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/) |

@@ -1,5 +1,23 @@
 # Architecture: Liferay DXP on OpenShift
 
+## Reference Architecture Diagram
+
+```mermaid
+graph TB
+    Users["👤 Users HTTPS"] --> Route
+
+    subgraph OCP["OpenShift 4.x Cluster"]
+        Route["OpenShift Route\nTLS Edge Termination"] --> Svc["Service :8080"]
+        Svc --> LR["Liferay DXP\nStatefulSet\nUID 1000 | nonroot-v2"]
+        LR --> PG["PostgreSQL 16\nCrunchy PGO"]
+        LR --> OS["OpenSearch 2.19\nDirect StatefulSet"]
+        Argo["ArgoCD\nOpenShift GitOps"] --> LR
+    end
+
+    GH["GitHub Repo\nvalues/environments/*/"] --> Argo
+    OCI["OCI Registry\nliferay-default chart"] --> Argo
+```
+
 ## End-State Components
 
 ```
